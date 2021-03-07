@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Optional;
 
-@RequestMapping("/user")
+@RequestMapping("/api")
 @RestController
 public class UserController {
     private UserRepository userRepository;
@@ -21,7 +21,7 @@ public class UserController {
     public List<User> allUser() {
         return (List<User>) userRepository.findAll();
     }
-
+    @GetMapping("/{id}")
     public User findById(@PathVariable String id) {
         return userRepository.findById(id).orElseThrow(() -> new UserNotFounException(id));
     }
