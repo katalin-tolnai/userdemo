@@ -9,59 +9,47 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Optional;
 
-// TODO KT 2021-03-14: rename to UserRestController
 // TODO KT 2021-03-14: create mvc test for the RestController
 @RequestMapping("/api")
 @RestController
-public class UserController
-{
+public class UserRestController {
     private UserRepository userRepository;
 
-    public UserController(UserRepository userRepository)
+    public UserRestController(UserRepository userRepository)
     {
         this.userRepository = userRepository;
     }
 
-    // TODO KT 2021-03-14:  rename mapping to "/user"
-    @GetMapping("/users")
-    public List<User> allUser()
-    {
+    @GetMapping("/user")
+    public List<User> allUser() {
         return (List<User>) userRepository.findAll();
     }
 
     @GetMapping("/{id}")
-    public User findById(@PathVariable String id)
-    {
+    public User findById(@PathVariable String id) {
         return userRepository.findById(id).orElseThrow(() -> new UserNotFounException(id));
     }
 
-    // TODO KT 2021-03-14:  rename mapping to "/user"
-    @PostMapping("/create")
-    public User create(@RequestBody User user)
-    {
+    @PostMapping("/user")
+    public User create(@RequestBody User user) {
         return userRepository.save(user);
     }
 
-    // TODO KT 2021-03-14:  rename mapping to "/user"
-    @PutMapping("/modify")
-    public User update(@RequestBody User userToSave)
-    {
-        Optional<User> userOptional = userRepository.findById(userToSave.getId());
-        if (userOptional.isPresent())
-        {
-            User user = userOptional.get();
-            BeanUtils.copyProperties(userToSave, user, "id");
-            userRepository.save(user);
-            return user;
-        }
-
-        return null;
-
+    @PutMapping("/user")
+    public User update(@RequestBody User userToSave) {
+        return userRepository.findById(userToSave.getId())
+                .map(userAlreadyInDb -> this.modifyUser(userToSave, userAlreadyInDb))
+                .orElseThrow(() -> new IllegalArgumentException(""));
     }
 
-    // TODO KT 2021-03-14:  rename mapping to "/user"
+    private User modifyUser(User userToSave, User userAlreadyInDb) {
+        BeanUtils.copyProperties(userToSave, userAlreadyInDb, "id");
+        userRepository.save(userAlreadyInDb);
+        return userAlreadyInDb;
+    }
+
     // TODO KT 2021-03-14:  path variable is not defined in the mapping. It can not work like this
-    @DeleteMapping("/delete")
+    @DeleteMapping("/user/{id}")
     public void delete(@PathVariable String id)
     {
         // TODO KT 2021-03-14: check the status code if UserNotFounException gets thrown. It should be 404
